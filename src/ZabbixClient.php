@@ -34,17 +34,30 @@ final class ZabbixClient
         $hostRows = array_map(fn (array $host): array => $this->mapHost($host, $itemsByHost[$host['hostid']] ?? []), $hosts);
 
         $problems = $this->request('problem.get', [
-            'output' => ['eventid', 'name', 'severity', 'clock', 'acknowledged', 'opdata', 'suppressed'],
-            'selectHosts' => ['hostid', 'name'],
+            'output' => ['eventid', 'objectid', 'name', 'severity', 'clock', 'acknowledged', 'opdata', 'suppressed'],
             'source' => 0,
             'object' => 0,
             'sortfield' => ['eventid'],
             'sortorder' => 'DESC',
             'limit' => 50,
         ]);
+
+        $triggerIds = array_values(array_unique(array_filter(array_column($problems, 'objectid'))));
+        $triggerHosts = [];
+        if ($triggerIds) {
+            $triggers = $this->request('trigger.get', [
+                'output' => ['triggerid'],
+                'triggerids' => $triggerIds,
+                'selectHosts' => ['hostid', 'name'],
+            ]);
+            foreach ($triggers as $trigger) {
+                $triggerHosts[$trigger['triggerid']] = $trigger['hosts'][0]['name'] ?? 'Host desconhecido';
+            }
+        }
+
         $alerts = array_map(fn (array $p): array => [
             'id' => $p['eventid'],
-            'host' => $p['hosts'][0]['name'] ?? 'Host desconhecido',
+            'host' => $triggerHosts[$p['objectid']] ?? 'Host desconhecido',
             'message' => $p['name'],
             'details' => $p['opdata'] ?? '',
             'severity' => (int) $p['severity'],
@@ -156,7 +169,7 @@ final class ZabbixClient
         if (!function_exists('curl_init')) throw new RuntimeException('A extensão cURL do PHP é necessária.');
         $payload = json_encode(['jsonrpc' => '2.0', 'method' => $method, 'params' => $params, 'id' => random_int(1, PHP_INT_MAX)], JSON_THROW_ON_ERROR);
         $curl = curl_init($this->config['url']);
-        curl_setopt_array($curl, [
+        $options = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $payload,
@@ -165,11 +178,14 @@ final class ZabbixClient
             CURLOPT_TIMEOUT => $this->config['timeout'],
             CURLOPT_SSL_VERIFYPEER => $this->config['verify_ssl'],
             CURLOPT_SSL_VERIFYHOST => $this->config['verify_ssl'] ? 2 : 0,
-        ]);
+        ];
+        if (!empty($this->config['ca_bundle'])) {
+            $options[CURLOPT_CAINFO] = $this->config['ca_bundle'];
+        }
+        curl_setopt_array($curl, $options);
         $body = curl_exec($curl);
         $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         $error = curl_error($curl);
-        curl_close($curl);
         if ($body === false || $error !== '') throw new RuntimeException('Falha de conexão com o Zabbix: ' . $error);
         if ($status < 200 || $status >= 300) throw new RuntimeException("O Zabbix respondeu com HTTP {$status}.");
         $decoded = json_decode($body, true, 512, JSON_THROW_ON_ERROR);

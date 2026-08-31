@@ -3,7 +3,6 @@
 Requisitos: PHP 8.1 ou superior.
 
 ```bash
-cd zabbix-dashboard
 php -S localhost:8080
 ```
 

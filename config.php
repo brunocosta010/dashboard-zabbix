@@ -23,6 +23,7 @@ return [
     'url' => rtrim(getenv('ZABBIX_URL') ?: '', '/'),
     'token' => getenv('ZABBIX_API_TOKEN') ?: '',
     'verify_ssl' => filter_var(getenv('ZABBIX_VERIFY_SSL') ?: 'true', FILTER_VALIDATE_BOOL),
+    'ca_bundle' => getenv('ZABBIX_CA_BUNDLE') ?: '',
     'timeout' => max(2, (int) (getenv('ZABBIX_TIMEOUT') ?: 10)),
     'company_name' => getenv('COMPANY_NAME') ?: 'Minha Empresa',
     'company_logo' => getenv('COMPANY_LOGO') ?: 'assets/company-logo.svg',
