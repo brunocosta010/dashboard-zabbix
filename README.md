@@ -7,6 +7,8 @@ Dashboard PHP conectado diretamente à API do Zabbix. A interface reproduz o inv
 - Grade fixa de 24 colunas com GridStack.js 13.2.0.
 - Gráficos compactos de CPU, memória e latência com Apache ECharts 6.1.0.
 - 37 serviços simultaneamente visíveis, divididos entre clientes, internos e testes.
+- Serviços indisponíveis e sem dados são movidos automaticamente para o início de cada grupo.
+- Painel de saúde geral e indicadores de pico facilitam a leitura à distância.
 - Tabela de problemas e logs com paginação automática a cada 10 segundos.
 - Bibliotecas armazenadas em `assets/vendor`, sem dependência de CDN durante a execução.
 - Layout principal dimensionado automaticamente para ocupar uma tela 1920×1080 sem scroll.

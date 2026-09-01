@@ -29,12 +29,12 @@ $logo = htmlspecialchars($config['company_logo'], ENT_QUOTES, 'UTF-8');
 
   <main class="grid-stack kiosk-grid" id="kioskGrid">
     <section class="grid-stack-item" gs-x="0" gs-y="0" gs-w="6" gs-h="7"><div class="grid-stack-item-content panel">
-      <header class="panel-title"><div><span class="accent cpu"></span><h2>Uso de CPU</h2></div><small>TOP 10 · ÚLTIMA LEITURA</small></header>
+      <header class="panel-title"><div><span class="accent cpu"></span><h2>Uso de CPU</h2></div><small id="cpuPeak">TOP 10 · ÚLTIMA LEITURA</small></header>
       <div class="chart" id="cpuChart" role="img" aria-label="Top 10 de uso de CPU"></div>
     </div></section>
 
     <section class="grid-stack-item" gs-x="0" gs-y="7" gs-w="6" gs-h="7"><div class="grid-stack-item-content panel">
-      <header class="panel-title"><div><span class="accent memory"></span><h2>Uso de memória</h2></div><small>TOP 10 · ÚLTIMA LEITURA</small></header>
+      <header class="panel-title"><div><span class="accent memory"></span><h2>Uso de memória</h2></div><small id="memoryPeak">TOP 10 · ÚLTIMA LEITURA</small></header>
       <div class="chart" id="memoryChart" role="img" aria-label="Top 10 de uso de memória"></div>
     </div></section>
 
@@ -48,7 +48,7 @@ $logo = htmlspecialchars($config['company_logo'], ENT_QUOTES, 'UTF-8');
     </div></section>
 
     <section class="grid-stack-item" gs-x="17" gs-y="0" gs-w="5" gs-h="6"><div class="grid-stack-item-content panel">
-      <header class="panel-title"><div><span class="accent latency"></span><h2>Latência</h2></div><small>PFSENSE_NOVO · MS</small></header>
+      <header class="panel-title"><div><span class="accent latency"></span><h2>Latência</h2></div><small id="latencyPeak">PFSENSE_NOVO · MS</small></header>
       <div class="chart" id="latencyChart" role="img" aria-label="Latência do pfSense"></div>
     </div></section>
 
@@ -56,8 +56,8 @@ $logo = htmlspecialchars($config['company_logo'], ENT_QUOTES, 'UTF-8');
       <span id="date">--/--/----</span><strong id="clock">--:--</strong><small id="weekday">---</small>
     </div></section>
 
-    <section class="grid-stack-item" gs-x="22" gs-y="4" gs-w="2" gs-h="2"><div class="grid-stack-item-content panel logo-panel">
-      <img src="<?= $logo ?>" alt="<?= $company ?>"><span>NOC</span>
+    <section class="grid-stack-item" gs-x="22" gs-y="4" gs-w="2" gs-h="2"><div class="grid-stack-item-content panel health-panel" id="healthPanel">
+      <i></i><div><strong id="overallState">ANALISANDO</strong><span id="overallDetail">Aguardando dados</span></div>
     </div></section>
 
     <section class="grid-stack-item" gs-x="17" gs-y="6" gs-w="7" gs-h="8"><div class="grid-stack-item-content panel updates-panel">

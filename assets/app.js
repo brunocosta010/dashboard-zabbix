@@ -6,7 +6,7 @@ let alerts = [];
 let updates = [];
 let alertPage = 0;
 let updatePage = 0;
-const ALERT_PAGE_SIZE = 6;
+const ALERT_PAGE_SIZE = 5;
 const UPDATE_PAGE_SIZE = 7;
 const charts = {};
 
@@ -66,7 +66,7 @@ function baseChartOption(rows, kind) {
       type:'category',
       data:data.map(row => compactName(row.host)),
       axisLine:{show:false}, axisTick:{show:false},
-      axisLabel:{color:'#c3ccd7', fontSize:8, width:100, overflow:'truncate', align:'right', margin:8},
+      axisLabel:{color:'#d1d8e0', fontSize:9, width:100, overflow:'truncate', align:'right', margin:8},
     },
     series:[{
       type:'bar', barWidth:9, showBackground:true,
@@ -74,7 +74,7 @@ function baseChartOption(rows, kind) {
       itemStyle:{borderRadius:2, color:params => kind === 'cpu'
         ? new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#73bf69'},{offset:.7,color:'#fade2a'},{offset:1,color:'#ff9830'}])
         : metricColor(params.value)},
-      label:{show:true, position:'right', distance:7, fontFamily:'Consolas', fontSize:8, formatter:params => `{${params.value >= 85 ? 'bad' : params.value >= 70 ? 'warn' : 'ok'}|${Number(params.value).toFixed(1)}%}`, rich:{ok:{color:'#73bf69'},warn:{color:'#ffb357'},bad:{color:'#ff6174'}}},
+      label:{show:true, position:'right', distance:7, fontFamily:'Consolas', fontSize:9, formatter:params => `{${params.value >= 85 ? 'bad' : params.value >= 70 ? 'warn' : 'ok'}|${Number(params.value).toFixed(1)}%}`, rich:{ok:{color:'#73bf69'},warn:{color:'#ffb357'},bad:{color:'#ff6174'}}},
       data:data.map(row => Number(row.value)),
     }],
   };
@@ -88,11 +88,11 @@ function latencyOption(rows) {
     animation:false, silent:true,
     grid:{left:82,right:44,top:7,bottom:7},
     xAxis:{type:'value',min:0,max,show:false},
-    yAxis:{type:'category',data:data.map(row=>compactName(row.host,16)),axisLine:{show:false},axisTick:{show:false},axisLabel:{color:'#d0d6de',fontSize:7,width:75,overflow:'truncate',margin:6}},
+    yAxis:{type:'category',data:data.map(row=>compactName(row.host,16)),axisLine:{show:false},axisTick:{show:false},axisLabel:{color:'#d8dee6',fontSize:8,width:75,overflow:'truncate',margin:6}},
     series:[{
       type:'pictorialBar',symbol:'rect',symbolRepeat:true,symbolClip:true,symbolSize:[5,9],symbolMargin:1,symbolBoundingData:max,
       itemStyle:{color:params => params.value >= 180 ? '#f2495c' : params.value >= 120 ? '#ff9830' : '#73bf69'},
-      label:{show:true,position:'right',distance:6,color:'#ff806f',fontFamily:'Consolas',fontWeight:600,fontSize:8,formatter:'{c} ms'},
+      label:{show:true,position:'right',distance:6,color:'#ff806f',fontFamily:'Consolas',fontWeight:600,fontSize:9,formatter:'{c} ms'},
       data:data.map(row=>Number(row.value)),
     }],
   };
@@ -131,12 +131,17 @@ function healthText(items) {
 function renderServices(services) {
   const groups = {clients:[],internal:[],tests:[]};
   services.forEach(service => groups[service.category]?.push(service));
+  const priority = {down:0,unknown:1,up:2};
+  Object.values(groups).forEach(items => items.sort((a,b) => priority[a.status] - priority[b.status]));
   $('#clientsGrid').innerHTML = groups.clients.map(serviceCard).join('');
   $('#internalGrid').innerHTML = groups.internal.map(serviceCard).join('');
   $('#testsGrid').innerHTML = groups.tests.map(serviceCard).join('');
   $('#clientsHealth').textContent = healthText(groups.clients);
   $('#internalHealth').textContent = healthText(groups.internal);
   $('#testsHealth').textContent = healthText(groups.tests);
+  [['clientsHealth',groups.clients],['internalHealth',groups.internal],['testsHealth',groups.tests]].forEach(([id,items]) => {
+    $(`#${id}`).classList.toggle('attention',items.some(item=>item.status==='down'));
+  });
   document.querySelectorAll('.service-logo img').forEach(image => image.addEventListener('error',()=>image.classList.add('failed'),{once:true}));
 }
 
@@ -186,6 +191,17 @@ function render(data) {
   $('#connectionState').classList.add('connected');
   renderServices(data.services || []);
   drawCharts(data.metrics || {});
+  const cpuPeak = data.metrics?.cpu?.[0];
+  const memoryPeak = data.metrics?.memory?.[0];
+  const latencyPeak = data.metrics?.latency?.[0];
+  $('#cpuPeak').textContent = cpuPeak ? `PICO ${Number(cpuPeak.value).toFixed(1)}% · ${compactName(cpuPeak.host,12)}` : 'SEM LEITURAS';
+  $('#memoryPeak').textContent = memoryPeak ? `PICO ${Number(memoryPeak.value).toFixed(1)}% · ${compactName(memoryPeak.host,12)}` : 'SEM LEITURAS';
+  $('#latencyPeak').textContent = latencyPeak ? `PICO ${Number(latencyPeak.value).toFixed(0)} MS` : 'SEM LEITURAS';
+  const healthPanel = $('#healthPanel');
+  healthPanel.classList.toggle('attention',summary.down > 0);
+  healthPanel.classList.toggle('warning',summary.down === 0 && (summary.problems > 0 || summary.unknown > 0));
+  $('#overallState').textContent = summary.down > 0 ? 'INCIDENTE' : summary.problems > 0 ? 'ATENÇÃO' : summary.unknown > 0 ? 'DEGRADADO' : 'ESTÁVEL';
+  $('#overallDetail').textContent = summary.down > 0 ? `${summary.down} serviço${summary.down === 1 ? '' : 's'} down` : summary.problems > 0 ? `${summary.problems} evento${summary.problems === 1 ? '' : 's'} ativo${summary.problems === 1 ? '' : 's'}` : summary.unknown > 0 ? `${summary.unknown} sem leitura` : 'Operação normal';
   alerts = data.alerts || []; updates = data.updates || []; alertPage = 0; updatePage = 0;
   renderAlertPage(); renderUpdatePage();
   if (data.settings) {
