@@ -1,6 +1,15 @@
 # Zabbix Operations Dashboard
 
-Dashboard PHP responsivo conectado diretamente à API do Zabbix. A interface reproduz o inventário e os itens do dashboard Grafana de referência, com uma apresentação moderna e otimizada para um command center.
+Dashboard PHP conectado diretamente à API do Zabbix. A interface reproduz o inventário e os itens do dashboard Grafana de referência em uma composição densa para TV 16:9 e modo kiosk, sem depender de rolagem ou interação com mouse.
+
+## Interface kiosk
+
+- Grade fixa de 24 colunas com GridStack.js 13.2.0.
+- Gráficos compactos de CPU, memória e latência com Apache ECharts 6.1.0.
+- 37 serviços simultaneamente visíveis, divididos entre clientes, internos e testes.
+- Tabela de problemas e logs com paginação automática a cada 10 segundos.
+- Bibliotecas armazenadas em `assets/vendor`, sem dependência de CDN durante a execução.
+- Layout principal dimensionado automaticamente para ocupar uma tela 1920×1080 sem scroll.
 
 ## Métricas monitoradas
 
